@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Task, TaskStatus } from './task.model';
 import { v4 as uuidv4 } from 'uuid';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 
 // Services are like modules which can be injected in any place and be used
 // They are singletones which means there is only 1 instance of service at the time
@@ -15,7 +17,31 @@ export class TasksService {
     return this.tasks;
   }
 
-  createTask(title: string, description: string): Task {
+  getTasksWithFilters(filterDto: GetTasksFilterDto): Task[] {
+    const { status, search } = filterDto;
+    let tasks = this.getAllTasks();
+
+    if (status) {
+      tasks = tasks.filter(task => task.status === status);
+    }
+
+    if (search) {
+      tasks = tasks.filter(
+        task =>
+          task.title.includes(search) || task.description.includes(search),
+      );
+    }
+
+    return tasks;
+  }
+
+  getTaskById(id: string): Task {
+    return this.tasks.find(task => id === task.id);
+  }
+
+  createTask(createTaskDto: CreateTaskDto): Task {
+    const { title, description } = createTaskDto;
+
     const task: Task = {
       id: uuidv4(),
       title,
@@ -25,6 +51,20 @@ export class TasksService {
 
     this.tasks.push(task);
     // Good idea to return created resource to the frontend
+    return task;
+  }
+
+  deleteTaskById(id: string): void {
+    this.tasks = this.tasks.filter(task => {
+      console.log(task.id, id);
+    });
+    console.log(this.tasks);
+  }
+
+  updateStatus(id: string, status: TaskStatus): Task {
+    // task is a reference to the item of an array
+    const task = this.getTaskById(id);
+    task.status = status;
     return task;
   }
 }
