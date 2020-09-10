@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Task, TaskStatus } from './task.model';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -36,7 +36,14 @@ export class TasksService {
   }
 
   getTaskById(id: string): Task {
-    return this.tasks.find(task => id === task.id);
+    const found = this.tasks.find(task => id === task.id);
+
+    // Throws it here, and NestJs on the background will recognize it as Http expection and return response to the client with formatted error
+    if (!found) {
+      throw new NotFoundException(`Task with provided ID (${id}) not found!`);
+    }
+
+    return found;
   }
 
   createTask(createTaskDto: CreateTaskDto): Task {
@@ -55,10 +62,10 @@ export class TasksService {
   }
 
   deleteTaskById(id: string): void {
+    const found = this.getTaskById(id);
     this.tasks = this.tasks.filter(task => {
-      console.log(task.id, id);
+      return task.id !== found.id;
     });
-    console.log(this.tasks);
   }
 
   updateStatus(id: string, status: TaskStatus): Task {
