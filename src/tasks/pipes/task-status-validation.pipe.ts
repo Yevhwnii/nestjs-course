@@ -1,5 +1,5 @@
 import { PipeTransform, BadRequestException } from '@nestjs/common';
-import { TaskStatus } from '../task.model';
+import { TaskStatus } from '../task-status.enum';
 
 // Pipes are function which is called before the route handler executes
 // Route handler pass values to them, they proceed values passed and pass back those modified values
