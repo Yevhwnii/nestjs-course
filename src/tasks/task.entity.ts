@@ -1,4 +1,11 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { User } from 'src/auth/user.entity';
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+} from 'typeorm';
 import { TaskStatus } from './task-status.enum';
 
 // typeorm uses entitites which are translated to the tables.
@@ -18,4 +25,15 @@ export class Task extends BaseEntity {
 
   @Column()
   status: TaskStatus;
+
+  // many tasks for 1 user
+  @ManyToOne(
+    type => User,
+    user => user.tasks,
+    { eager: false },
+  )
+  user: User;
+
+  @Column()
+  userId: number;
 }
