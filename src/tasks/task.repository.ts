@@ -8,29 +8,35 @@ import { Task } from './task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskStatus } from './task-status.enum';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
+import { User } from 'src/auth/user.entity';
 
 // Telling that this repository will be used for task entity and will hold generic type of Task entity
 // Repository base class exposes all the methods needed to work with entity and additionally create custom methods
 @EntityRepository(Task)
 export class TaskRepository extends Repository<Task> {
-  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
     const { title, description } = createTaskDto;
 
     const task = new Task();
     task.title = title;
     task.description = description;
     task.status = TaskStatus.OPEN;
+    task.user = user;
     await task.save();
+    // Deleting user property from task so it is not returned in response
+    delete task.user;
     // Good idea to return created resource to the frontend
     return task;
   }
 
-  async getTasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
+  async getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Task[]> {
     const { status, search } = filterDto;
     // query builder is used for more complex conditional queries
     // since it is called in tasks repository it will create query builder which interacts with task table
     // we provide argument to which we can later refer in query
     const query = this.createQueryBuilder('task');
+
+    query.where('task.userId = :userId', { userId: user.id });
 
     if (status) {
       // adds AND WHERE to the query, where task is an argument in queryBuild to which we can refer as an entity
